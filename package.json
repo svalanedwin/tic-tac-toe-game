@@ -1,0 +1,11 @@
+{
+  "name": "tic-tac-toe-game",
+  "version": "1.0.0",
+  "main": "index.js",
+  "repository": "https://github.com/svalanedwin/tic-tac-toe-game.git",
+  "author": "svalanedwin <valanedwin89@gmail.com>",
+  "license": "MIT",
+  "private": true,
+  "workspaces": ["web-app", "shared"]
+}
+

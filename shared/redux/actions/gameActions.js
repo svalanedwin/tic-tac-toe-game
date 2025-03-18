@@ -69,7 +69,7 @@ export const computerMove = (sessionId, board) => async (dispatch) =>{
   try {
     // Call the computer move API
     const response = await makeComputerMove(sessionId, board);
-
+    const {updatedBoard, gameStatus} = response.data;
     // Dispatch actions to update the board and game status
     dispatch({
         type: UPDATE_BOARD,
