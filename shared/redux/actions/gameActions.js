@@ -136,8 +136,15 @@ export const computerMove = (sessionId, board) => async (dispatch) => {
 export const fetchStats = () => async (dispatch) => {
   try {
     const response = await getGameStats();
-    dispatch({ type: UPDATE_STATS, payload: response.data });
+    console.log('📊 Stats received:', response.data);
+
+    dispatch({
+      type: UPDATE_STATS,
+      payload: response.data,
+    });
   } catch (error) {
-    console.error('Error fetching stats:', error);
+    console.error('❌ Error fetching stats:', error.response?.data || error.message);
   }
 };
+
+

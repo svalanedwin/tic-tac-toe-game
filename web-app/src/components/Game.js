@@ -34,12 +34,12 @@ const Game = () => {
       </div>
       <p>Status: {gameStatus}</p>
       <div>
-        <h3>Statistics</h3>
-        <p>Total Games: {stats.totalGames}</p>
-        <p>Wins: {stats.wins}</p>
-        <p>Losses: {stats.losses}</p>
-        <p>Draws: {stats.draws}</p>
-      </div>
+  <h3>Statistics</h3>
+  <p>Total Games: {stats?.totalGames || 0}</p>
+  <p>Wins: {stats?.wins || 0}</p>
+  <p>Losses: {stats?.losses || 0}</p>
+  <p>Draws: {stats?.draws || 0}</p>
+</div>
     </div>
   );
 };
