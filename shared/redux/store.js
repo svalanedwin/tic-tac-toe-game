@@ -1,8 +1,15 @@
-import { createStore, applyMiddleware } from 'redux';
+// web-app/src/redux/store.js
+import { configureStore } from '@reduxjs/toolkit';
 import thunk from 'redux-thunk';
-import rootReducer from './reducers/rootReducer';
+import authReducer from './reducers/authReducer';
+import gameReducer from './reducers/gameReducer';
 
-// Create the redux store
-const store = createStore(rootReducer, applyMiddleware(thunk));
+const store = configureStore({
+  reducer: {
+    auth: authReducer,
+    game: gameReducer,
+  },
+  middleware: (getDefaultMiddleware) => getDefaultMiddleware().concat(thunk),
+});
 
 export default store;

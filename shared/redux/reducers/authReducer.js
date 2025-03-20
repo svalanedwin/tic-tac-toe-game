@@ -1,30 +1,27 @@
-import { LOGIN_SUCCESS, LOGOUT } from '../actions/authActions'
+// web-app/src/redux/reducers/authReducer.js
+import { LOGIN_SUCCESS, LOGOUT } from '../actions/authActions';
 
-// Initial state for authentication
 const initialState = {
-    user: null, // Stores the logged-in user's details
-    token: null, // Stores the JWT token
-}
+  user: null,
+  token: null,
+};
 
-// Auth reducer
-const authReducer = (state = initialState, action) =>{
+const authReducer = (state = initialState, action) => {
   switch (action.type) {
     case LOGIN_SUCCESS:
-        return{
-            ...state,
-            user: action.payload.user, // Update user details
-            token: action.payload.token, // Update token
-        };
+      return {
+        ...state,
+        user: action.payload.user,
+        token: action.payload.token,
+      };
     case LOGOUT:
-        return {
-            ...state.token,
-            user: null, // Clear user details
-            token: null, // Update token
-
-        };   
-  
+      return {
+        ...state,
+        user: null,
+        token: null,
+      };
     default:
-       return state; // Return current state for unknown actions
+      return state;
   }
 };
 

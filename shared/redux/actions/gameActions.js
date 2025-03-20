@@ -1,131 +1,143 @@
+import axios from 'axios';
 import {
-    createGameSession,
-    makePlayerMove,
-    makeComputerMove,
-    getGameSession,
-    getGameStats
-} from '../../services/api'; // Import API Functions
+  createGameSession,
+  makePlayerMove,
+  makeComputerMove,
+  getGameSession,
+  getGameStats,
+} from 'shared/services/api';
 
 // Action Types
 export const UPDATE_BOARD = 'UPDATE_BOARD';
-export const  UPDATE_GAME_STATUS = 'UPDATE_GAME_STATUS';
+export const UPDATE_GAME_STATUS = 'UPDATE_GAME_STATUS';
 export const UPDATE_STATS = 'UPDATE_STATS';
+export const SET_SESSION_ID = 'SET_SESSION_ID';
 
 // Create a new game session
-export const createGame = (startWithPlayer) => async (dispatch) =>{
-    try{
-    // Call the create game API
-    const response = await createGameSession(startWithPlayer);
-    const {sessionId, board } = response.data;
-
-    // Dispatch action to update the board
-    dispatch({
-        type: UPDATE_BOARD,
-        payload: board
-    });
-    // Return sessionId for future moves
-    return sessionId;
-}catch (error) {
-     console.error('Error creating game session:', error);
-     throw error;
-}
-};
-
-// make a player move
-export const playerMove = (sessionId, board, index) => async (dispatch) =>{
+export const createGame = (startWithPlayer) => async (dispatch) => {
   try {
-    const newBoard = [...board];
-    // Assume 'X' is the player's symbol
-    newBoard[index] = 'X';
+    const response = await createGameSession(startWithPlayer);
+    
+    console.log('Raw Backend Response:', response); // Debugging step
 
-    // Call the player move API
-    const response = await makePlayerMove(sessionId, newBoard);
-    const { board: updatedBoard, gameStatus } = response.data;
-
-    // Dispatch actions to update the board and game status
-    dispatch({
-        type: UPDATE_BOARD,
-        payload: updatedBoard,
-    });
-    dispatch({
-        type: UPDATE_GAME_STATUS,
-        payload: gameStatus,
-    });
-
-    // If the game is still ongoing, make the computer move
-    if(gameStatus === 'ongoing'){
-        dispatch(computerMove(sessionId, updatedBoard));
+    // Ensure response is properly formatted JSON
+    if (typeof response.data !== 'object') {
+      throw new Error('Invalid JSON response from backend');
     }
-    
+
+    const { board, sessionId, status } = response.data;
+
+    dispatch({
+      type: UPDATE_BOARD,
+      payload: board.flat(),
+    });
+
+    dispatch({
+      type: SET_SESSION_ID,
+      payload: sessionId,
+    });
+
+    return sessionId;
   } catch (error) {
-    console.error('Error making player move:', error);
+    console.error('Error creating game:', error);
     throw error;
-    
   }
 };
+
+
+// Make a player move
+export const playerMove = (sessionId, board, index) => async (dispatch) => {
+  try {
+    const newBoard = [...board]; // Copy board state
+    newBoard[index] = -1; // Player move (X)
+
+    // Convert the flattened array back into a 2D array
+    const board2D = [
+      [...newBoard.slice(0, 3)],
+      [...newBoard.slice(3, 6)],
+      [...newBoard.slice(6, 9)],
+    ];
+
+    // Fix payload: Send board as an **array**, not a string
+    const payload = {
+      sessionId: Number(sessionId), // Convert sessionId to number
+      board: board2D, // Send actual array, not JSON string
+    };
+
+    console.log('Sending payload to backend:', JSON.stringify(payload, null, 2));
+
+    const response = await makePlayerMove(payload);
+    console.log('Received response from backend:', response.data);
+
+    dispatch({
+      type: UPDATE_BOARD,
+      payload: response.data.board.flat(),
+    });
+    dispatch({
+      type: UPDATE_GAME_STATUS,
+      payload: response.data.status,
+    });
+
+    if (response.data.status === 'ongoing') {
+      dispatch(computerMove(sessionId, response.data.board));
+    }
+  } catch (error) {
+    console.error('Error making player move:', error.response?.data || error.message);
+    throw error;
+  }
+};
+
 
 // Make a computer move
-export const computerMove = (sessionId, board) => async (dispatch) =>{
+export const computerMove = (sessionId, board) => async (dispatch) => {
   try {
-    // Call the computer move API
-    const response = await makeComputerMove(sessionId, board);
-    const {updatedBoard, gameStatus} = response.data;
-    // Dispatch actions to update the board and game status
+    // ✅ Ensure board is a proper 2D array
+    if (!Array.isArray(board) || board.length !== 3 || !board.every(row => Array.isArray(row) && row.length === 3)) {
+      console.error("❌ Invalid board format before sending to backend:", board);
+      return;
+    }
+
+    const payload = {
+      sessionId: Number(sessionId),  // ✅ Ensure sessionId is a number
+      board: board,  // ✅ Ensure board is an array, not a string
+      current_player: "o"  // ✅ Required by FastAPI
+    };
+
+    console.log("🤖 Sending computer move request to backend:", JSON.stringify(payload, null, 2));
+
+    const response = await makeComputerMove(payload);
+    console.log("📩 Response from backend (computer move):", response.data);
+
+    if (!response.data.board) {
+      console.error("❌ Backend did not return a board for AI move.");
+      return;
+    }
+
     dispatch({
-        type: UPDATE_BOARD,
-        payload: updatedBoard,
-    });
-    dispatch({
-        type: UPDATE_GAME_STATUS,
-        payload: gameStatus,
+      type: UPDATE_BOARD,
+      payload: response.data.board.flat(),
     });
 
+    dispatch({
+      type: UPDATE_GAME_STATUS,
+      payload: response.data.status,
+    });
 
   } catch (error) {
-    console.error('Error making computer move:', error);
-    throw error;
+    console.error("❌ Error making computer move:", error.response?.data || error.message);
   }
 };
 
-// Fetch game sessions details
-export const fetchGameSession = (sessionId) => async (dispatch) =>{
-   try {
-    // Call the get game session API
-    const response = await getGameSession(sessionId);
-    const {board, gameStatus} = response.data;
 
-    // Dispatch actions to update the board and game status
-    dispatch({
-        type: UPDATE_BOARD,
-        payload: board,
-    });
-    dispatch({
-        type: UPDATE_GAME_STATUS,
-        payload: gameStatus,
-    });
 
-   } catch (error) {
-    console.error('Error fetching game session:', error);
-    throw error;
-   }
-};
 
-// Fetch user statistics
-export const fetchStats = () => async (dispatch) =>{
+
+// Fetch game statistics
+export const fetchStats = () => async (dispatch) => {
   try {
-    // Call the get stats API
     const response = await getGameStats();
-    const stats = response.data;
-
-    // Dispatch action to update statistics
-    dispatch({
-        type: UPDATE_STATS,
-        payload: stats,
-    });
-
-
+    dispatch({ type: UPDATE_STATS, payload: response.data });
   } catch (error) {
     console.error('Error fetching stats:', error);
-    throw error;
   }
 };

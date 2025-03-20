@@ -1,42 +1,42 @@
-import { UPDATE_BOARD, UPDATE_GAME_STATUS, UPDATE_STATS} from '../actions/gameActions'
+import { UPDATE_BOARD, UPDATE_GAME_STATUS, UPDATE_STATS, SET_SESSION_ID } from '../actions/gameActions';
 
-// Initial state for the game
 const initialState = {
-    board: Array(9).fill(''), // Represents the Tic-Tac-Toe board
-    gameStatus: 'ongoing', // Tracks the game status (ongoing, win, loss, draw)
-    
-    // Tracks user statistics
-    stats: {
-        totalGames: 0,
-        wins: 0,
-        losses: 0,
-        draws: 0,
-    },
+  board: Array(9).fill(0), // Initialize with 0s (empty cells)
+  gameStatus: 'ongoing',
+  stats: {
+    totalGames: 0,
+    wins: 0,
+    losses: 0,
+    draws: 0,
+  },
+  sessionId: null, // Add sessionId to the state
 };
 
-// Game reducer
 const gameReducer = (state = initialState, action) => {
-    switch (action.type) {
-        case UPDATE_BOARD:
-            return {
-              ...state,
-              board: action.payload, // Update the board
-
-            };
-        case UPDATE_GAME_STATUS:
-             return {
-                ...state,
-                gameStatus: action.payload, // Update the game status
-             };
-        case UPDATE_STATS:
-            return{
-                ...state,
-                stats: action.payload, // Update user statistics
-            };
-    
-        default:
-           return state; // Return current state for unknown actions
-    }
+  switch (action.type) {
+    case UPDATE_BOARD:
+      return {
+        ...state,
+        board: [...action.payload], // Create a new array
+      };
+    case UPDATE_GAME_STATUS:
+      return {
+        ...state,
+        gameStatus: action.payload,
+      };
+    case UPDATE_STATS:
+      return {
+        ...state,
+        stats: { ...action.payload }, // Ensure new object
+      };
+    case SET_SESSION_ID:
+      return {
+        ...state,
+        sessionId: action.payload,
+      };
+    default:
+      return state;
+  }
 };
 
 export default gameReducer;
