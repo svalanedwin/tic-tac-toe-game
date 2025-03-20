@@ -1,9 +1,11 @@
-// web-app/src/redux/actions/authActions.js
-import { loginUser, registerUser } from 'shared/services/api';
+import { loginUser, registerUser, fetchUser } from 'shared/services/api';
 
 // Action Types
 export const LOGIN_SUCCESS = 'LOGIN_SUCCESS';
 export const LOGOUT = 'LOGOUT';
+export const LOAD_USER = 'LOAD_USER';
+
+
 
 // Login action
 export const login = (credentials) => async (dispatch) => {
@@ -11,16 +13,10 @@ export const login = (credentials) => async (dispatch) => {
     const response = await loginUser(credentials);
     const { user, token } = response.data;
 
-    // Save token to localStorage
     localStorage.setItem('token', token);
-
-    // Dispatch login success action
-    dispatch({
-      type: LOGIN_SUCCESS,
-      payload: { user, token },
-    });
+    dispatch({ type: LOGIN_SUCCESS, payload: { user, token } });
   } catch (error) {
-    console.error('Login failed:', error.response?.data?.error || error.message);
+    console.error('Login failed:', error.message);
     throw error;
   }
 };
@@ -29,6 +25,8 @@ export const login = (credentials) => async (dispatch) => {
 export const logout = () => (dispatch) => {
   localStorage.removeItem('token');
   dispatch({ type: LOGOUT });
+   // ✅ Navigate to login screen
+   window.location.href = '/';
 };
 
 // Register action
@@ -37,16 +35,10 @@ export const register = (userData) => async (dispatch) => {
     const response = await registerUser(userData);
     const { user, token } = response.data;
 
-    // Save token to localStorage
     localStorage.setItem('token', token);
-
-    // Dispatch login success action
-    dispatch({
-      type: LOGIN_SUCCESS,
-      payload: { user, token },
-    });
+    dispatch({ type: LOGIN_SUCCESS, payload: { user, token } });
   } catch (error) {
-    console.error('Registration failed:', error.response?.data?.error || error.message);
+    console.error('Registration failed:', error.message);
     throw error;
   }
 };
